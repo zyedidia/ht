@@ -20,6 +20,8 @@ int main() {
         }
     }
 
+    ht_free(&tbl);
+
     printf("pass\n");
 
     return 0;
