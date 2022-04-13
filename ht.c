@@ -31,8 +31,9 @@ ht_val_t ht_get(ht_t* tbl, ht_key_t key, bool* found) {
     size_t idx = (size_t) (hash & (uint64_t) (tbl->cap - 1));
 
     while (tbl->entries[idx].filled) {
-        if (tbl->entries[idx].key == key) {
-            if (found) *found = true;
+        if (ht_eq(tbl->entries[idx].key, key)) {
+            if (found)
+                *found = true;
             return tbl->entries[idx].val;
         }
         idx++;
@@ -40,7 +41,8 @@ ht_val_t ht_get(ht_t* tbl, ht_key_t key, bool* found) {
             idx = 0;
         }
     }
-    if (found) *found = false;
+    if (found)
+        *found = false;
 
     ht_val_t val;
     memset(&val, 0, sizeof(ht_val_t));
@@ -86,7 +88,7 @@ int ht_put(ht_t* tbl, ht_key_t key, ht_val_t val) {
     size_t idx = (size_t) (hash & (uint64_t) (tbl->cap - 1));
 
     while (tbl->entries[idx].filled) {
-        if (tbl->entries[idx].key == key) {
+        if (ht_eq(tbl->entries[idx].key, key)) {
             tbl->entries[idx].val = val;
             return 0;
         }
@@ -101,5 +103,41 @@ int ht_put(ht_t* tbl, ht_key_t key, ht_val_t val) {
     tbl->entries[idx].filled = true;
     tbl->len++;
 
+    return 0;
+}
+
+static void remove(ht_t* tbl, size_t idx) {
+    tbl->entries[idx].filled = false;
+    tbl->len--;
+}
+
+int ht_remove(ht_t* tbl, ht_key_t key) {
+    uint64_t hash = ht_hash(key);
+    size_t idx = (size_t) (hash & (uint64_t) (tbl->cap - 1));
+
+    while (tbl->entries[idx].filled && !ht_eq(tbl->entries[idx].key, key)) {
+        idx = (idx + 1) & (tbl->cap - 1);
+    }
+
+    if (tbl->entries[idx].filled) {
+        return 0;
+    }
+
+    remove(tbl, idx);
+
+    idx = (idx + 1) & (tbl->cap - 1);
+
+    while (tbl->entries[idx].filled) {
+        ht_key_t krehash = tbl->entries[idx].key;
+        ht_val_t vrehash = tbl->entries[idx].val;
+        remove(tbl, idx);
+        ht_put(tbl, krehash, vrehash);
+        idx = (idx + 1) & (tbl->cap - 1);
+    }
+
+    // halves the array if it is 12.5% full or less
+    if (tbl->len > 0 && tbl->len <= tbl->cap / 8) {
+        return resize(tbl, tbl->cap / 2);
+    }
     return 0;
 }

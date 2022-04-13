@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <string.h>
 
+// ---
+// redefine these values for custom types
+
 typedef uint32_t ht_key_t;
 typedef uint32_t ht_val_t;
 
@@ -13,6 +16,12 @@ static inline uint64_t ht_hash(ht_key_t key) {
     key = (key >> 16) ^ key;
     return key;
 }
+
+static inline bool ht_eq(ht_key_t a, ht_key_t b) {
+    return a == b;
+}
+
+// ---
 
 typedef struct {
     ht_key_t key;
@@ -31,3 +40,4 @@ void ht_free(ht_t* tbl);
 
 ht_val_t ht_get(ht_t* tbl, ht_key_t key, bool* found);
 int ht_put(ht_t* tbl, ht_key_t key, ht_val_t val);
+int ht_remove(ht_t* tbl, ht_key_t key);
