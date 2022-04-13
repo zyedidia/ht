@@ -3,9 +3,17 @@
 
 #include "ht.h"
 
-int ht_alloc(ht_t* tbl, size_t cap) {
+static size_t pow2ceil(size_t num) {
+    size_t power = 1;
+    while (power < num) {
+        power *= 2;
+    }
+    return power;
+}
+
+int ht_alloc(ht_t* tbl, size_t caphint) {
     tbl->len = 0;
-    tbl->cap = cap;
+    tbl->cap = pow2ceil(caphint);
 
     tbl->entries = (ht_entry_t*) calloc(tbl->cap, sizeof(ht_entry_t));
     if (tbl->entries == NULL) {
