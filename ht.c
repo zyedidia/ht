@@ -119,7 +119,7 @@ int ht_remove(ht_t* tbl, ht_key_t key) {
         idx = (idx + 1) & (tbl->cap - 1);
     }
 
-    if (tbl->entries[idx].filled) {
+    if (!tbl->entries[idx].filled) {
         return 0;
     }
 
